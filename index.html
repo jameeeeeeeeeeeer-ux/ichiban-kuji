@@ -52,7 +52,6 @@ input,select{
   font-weight:bold;
 }
 
-/* 残り枚数：完全表示専用 */
 .total-view{
   display:inline-block;
   min-width:40px;
@@ -61,7 +60,6 @@ input,select{
   font-weight:900;
   background:transparent;
   border:none;
-  color:#000;
 }
 
 input[type=number]::-webkit-inner-spin-button,
@@ -146,16 +144,16 @@ footer{
 
 <br><h3>🎯 店頭で引いた賞</h3>
 <div class="draw-buttons">
-  <button onclick="drawPrize('A')">A賞</button>
-  <button onclick="drawPrize('B')">B賞</button>
-  <button onclick="drawPrize('C')">C賞</button>
-  <button onclick="drawPrize('D')">D賞</button>
-  <button onclick="drawPrize('E')">E賞</button>
-  <button onclick="drawPrize('F')">F賞</button>
-  <button onclick="drawPrize('G')">G賞</button>
-  <button onclick="drawPrize('H')">H賞</button>
-  <button onclick="drawPrize('I')">I賞</button>
-  <button onclick="drawPrize('J')">J賞</button>
+  <button onclick="drawPrize('A')" ontouchstart="drawPrize('A')">A賞</button>
+  <button onclick="drawPrize('B')" ontouchstart="drawPrize('B')">B賞</button>
+  <button onclick="drawPrize('C')" ontouchstart="drawPrize('C')">C賞</button>
+  <button onclick="drawPrize('D')" ontouchstart="drawPrize('D')">D賞</button>
+  <button onclick="drawPrize('E')" ontouchstart="drawPrize('E')">E賞</button>
+  <button onclick="drawPrize('F')" ontouchstart="drawPrize('F')">F賞</button>
+  <button onclick="drawPrize('G')" ontouchstart="drawPrize('G')">G賞</button>
+  <button onclick="drawPrize('H')" ontouchstart="drawPrize('H')">H賞</button>
+  <button onclick="drawPrize('I')" ontouchstart="drawPrize('I')">I賞</button>
+  <button onclick="drawPrize('J')" ontouchstart="drawPrize('J')">J賞</button>
 </div>
 
 <h3>通常賞</h3>
@@ -201,7 +199,6 @@ const lastPrice=document.getElementById("lastPrice");
 let prizeIndex=0;
 const yen=n=>n.toLocaleString("ja-JP")+"円";
 
-/* 0を一々消さなくていい */
 function smartZero(el){
   el.onfocus=()=>{ if(el.value==="0") el.value=""; };
   el.onblur=()=>{ if(el.value==="") el.value="0"; };
@@ -258,8 +255,9 @@ function addPrize(){
 function drawPrize(label){
   const row=[...prizeTable.rows].find(r=>r.dataset.prize===label);
   if(!row)return;
-  if(+row.cells[1].children[0].value<=0)return;
-  row.cells[1].children[0].value--;
+  const input=row.cells[1].children[0];
+  if(+input.value<=0)return;
+  input.value--;
   syncTotal();
   calc();
 }
