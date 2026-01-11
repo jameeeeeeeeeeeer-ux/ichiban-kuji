@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>一番くじ期待値ツール</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1:ital,wght@0,900&display=swap" rel="stylesheet">
+
+<style>
+body{
+  font-family:"M PLUS 1","Segoe UI","Hiragino Kaku Gothic ProN",sans-serif;
+  background:linear-gradient(180deg,#fff3f3,#ffffff);
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+
+h2{
+  background:linear-gradient(90deg,#d60000,#ff2b2b);
+  color:white;
+  padding:18px;
+  border-radius:16px;
+  text-align:center;
+  font-size:32px;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
+}
+
+h3{
+  background:#000;
+  color:#fff;
+  padding:6px 14px;
+  border-radius:999px;
+  display:inline-block;
+  font-size:16px;
+  margin-top:28px;
+}
+
+input,select{
+  width:90px;
+  padding:6px;
+  border-radius:6px;
+  border:2px solid #000;
+  font-weight:bold;
+}
+
+/* numberの▲▼削除 */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+input[type=number]{ -moz-appearance:textfield; }
+
+button{
+  background:linear-gradient(180deg,#ffe600,#ffcc00);
+  color:#000;
+  border:3px solid #000;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+  padding:10px 16px;
+  margin:4px;
+  box-shadow:0 3px 0 #000;
+}
+button:active{
+  transform:translateY(2px);
+  box-shadow:0 1px 0 #000;
+}
+
+.draw-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.draw-buttons button{
+  width:18%;
+  padding:14px 0;
+  font-size:15px;
+  background:linear-gradient(180deg,#ff4d4f,#d60000);
+  color:#fff;
+  text-shadow:1px 1px 0 #000;
+}
+
+table{
+  width:100%;
+  background:white;
+  border-radius:12px;
+  overflow:hidden;
+  border:4px solid #000;
+  margin-top:8px;
+}
+th{
+  background:linear-gradient(180deg,#ffe600,#ffd000);
+  border-bottom:3px solid #000;
+}
+th,td{
+  padding:8px;
+  text-align:center;
+}
+
+.card{
+  background:white;
+  padding:18px;
+  border-radius:16px;
+  margin-top:14px;
+  border:4px solid #000;
+}
+
+.plus{ color:#2f9e44;font-weight:bold; }
+.minus{ color:#e03131;font-weight:bold; }
+
+.fire{
+  color:#d4a017;
+  font-weight:bold;
+  animation:firePulse 1s infinite alternate;
+}
+.fireCanvas{
+  filter:drop-shadow(0 0 16px gold);
+}
+@keyframes firePulse{
+  from{ text-shadow:0 0 6px gold; }
+  to{ text-shadow:0 0 16px orange; }
+}
+</style>
+</head>
+
+<body>
+
+<h2>🎁 一番くじ期待値ツール</h2>
+
+くじ価格
+<input id="price" type="number" inputmode="numeric" value="0"> 円　
+残り枚数
+<input id="total" type="number" inputmode="numeric" value="0"> 枚
+
+<h3>🎯 店頭で引いた賞</h3>
+<div class="draw-buttons">
+  <button onclick="drawPrize('A')">A賞</button>
+  <button onclick="drawPrize('B')">B賞</button>
+  <button onclick="drawPrize('C')">C賞</button>
+  <button onclick="drawPrize('D')">D賞</button>
+  <button onclick="drawPrize('E')">E賞</button>
+  <button onclick="drawPrize('F')">F賞</button>
+  <button onclick="drawPrize('G')">G賞</button>
+  <button onclick="drawPrize('H')">H賞</button>
+  <button onclick="drawPrize('I')">I賞</button>
+  <button onclick="drawPrize('J')">J賞</button>
+</div>
+
+<h3>通常賞</h3>
+<table id="prizeTable">
+  <tr><th>賞</th><th>残り</th><th>価格</th><th></th></tr>
+</table>
+<button onclick="addPrize()">賞を追加</button>
+
+<h3>🏁 ラストワン賞</h3>
+<label><input type="checkbox" id="lastCheck"> ラストワンあり</label>
+価格 <input id="lastPrice" type="number" inputmode="numeric" value="0"> 円
+
+<br><br>
+<button onclick="calc()">計算する</button>
+
+<div id="result" class="card"></div>
+
+<div class="card">
+  <h3>📊 狙いの賞が出る確率</h3><br>
+  <select id="targetPrize"></select>
+  n回 <input id="nDraw" type="number" inputmode="numeric" value="5"> 回以内
+  <br><br>
+  <canvas id="pie" width="260" height="260"></canvas>
+  <div id="probText"></div>
+</div>
+
+<script>
+const priceInput = document.getElementById("price");
+const totalInput = document.getElementById("total");
+const prizeTable = document.getElementById("prizeTable");
+const result = document.getElementById("result");
+const targetPrize = document.getElementById("targetPrize");
+const nDraw = document.getElementById("nDraw");
+const pie = document.getElementById("pie");
+const probText = document.getElementById("probText");
+const lastCheck = document.getElementById("lastCheck");
+const lastPrice = document.getElementById("lastPrice");
+
+let prizeIndex = 0;
+const yen = n => n.toLocaleString("ja-JP")+"円";
+
+function smartZero(el){
+  el.onfocus=()=>{ if(el.value==="0") el.value=""; };
+  el.onblur=()=>{ if(el.value==="") el.value="0"; };
+}
+[priceInput,totalInput,lastPrice,nDraw].forEach(smartZero);
+
+function indexToLabel(i){
+  let s=""; i++;
+  while(i>0){ i--; s=String.fromCharCode(65+i%26)+s; i=Math.floor(i/26); }
+  return s;
+}
+
+function addPrize(){
+  const l=indexToLabel(prizeIndex++);
+  const r=prizeTable.insertRow();
+  r.dataset.prize=l;
+  r.innerHTML=`
+    <td>${l}賞</td>
+    <td><input type="number" inputmode="numeric" value="0"></td>
+    <td><input type="number" inputmode="numeric" value="0"></td>
+    <td><button onclick="this.closest('tr').remove();updateTarget()">×</button></td>
+  `;
+  smartZero(r.cells[1].children[0]);
+  smartZero(r.cells[2].children[0]);
+  updateTarget();
+}
+
+function drawPrize(label){
+  const row=[...prizeTable.rows].find(r=>r.dataset.prize===label);
+  if(!row) return;
+  if(+row.cells[1].children[0].value<=0 || +totalInput.value<=0) return;
+  row.cells[1].children[0].value--;
+  totalInput.value--;
+  calc();
+}
+
+function calc(){
+  const price=+priceInput.value;
+  const totalN=+totalInput.value;
+
+  let normalSum=0;
+  [...prizeTable.rows].forEach((r,i)=>{
+    if(i===0)return;
+    normalSum +=
+      (+r.cells[1].children[0].value) *
+      (+r.cells[2].children[0].value);
+  });
+
+  const need = totalN * price;
+  const last = lastCheck.checked ? +lastPrice.value : 0;
+
+  const profitWithoutLast = normalSum - need;
+  const profitWithLast = profitWithoutLast + last;
+
+  const exp1WithoutLast = totalN>0 ? profitWithoutLast/totalN : 0;
+  const exp1WithLast = totalN>0 ? profitWithLast/totalN : 0;
+
+  result.innerHTML=`
+    1回期待値（ラストワンなし）：
+    <span class="${exp1WithoutLast>=0?'plus':'minus'}">
+      ${yen(Math.round(exp1WithoutLast))}
+    </span><br>
+
+    1回期待値（ラストワン込み）：
+    <span class="${exp1WithLast>=0?'plus':'minus'}">
+      ${yen(Math.round(exp1WithLast))}
+    </span><br><br>
+
+    💰 必要資金：<b>${yen(need)}</b><br>
+    🎁 回収総額：<b>${yen(normalSum)}</b><br>
+    🏁 ラストワン：<b>${last?yen(last):"なし"}</b><br>
+
+    📈 最終収支：
+    <span class="${profitWithLast>=0?'plus':'minus'}">
+      ${profitWithLast>=0?'+':''}${yen(profitWithLast)}
+    </span>
+  `;
+
+  drawProb();
+}
+
+function updateTarget(){
+  targetPrize.innerHTML="";
+  [...prizeTable.rows].forEach((r,i)=>{
+    if(i===0)return;
+    const o=document.createElement("option");
+    o.value=r.dataset.prize;
+    o.textContent=r.dataset.prize+"賞";
+    targetPrize.appendChild(o);
+  });
+}
+
+function drawProb(){
+  const prize=targetPrize.value;
+  const n=+nDraw.value;
+  const t=+totalInput.value;
+  if(!prize||t<=0)return;
+
+  let c=0;
+  [...prizeTable.rows].forEach((r,i)=>{
+    if(i===0)return;
+    if(r.dataset.prize===prize)c=+r.cells[1].children[0].value;
+  });
+
+  const hit=1-Math.pow((t-c)/t,n);
+  const per=hit*100;
+
+  const ctx=pie.getContext("2d");
+  ctx.clearRect(0,0,260,260);
+  const s=-Math.PI/2;
+  drawPie(ctx,130,130,100,hit,"#ffd700",s);
+  drawPie(ctx,130,130,100,1-hit,"#ffd6e0",s+hit*2*Math.PI);
+
+  probText.textContent=`${n}回以内：${per.toFixed(1)}%`;
+}
+
+function drawPie(ctx,x,y,r,p,col,s){
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.arc(x,y,r,s,s+p*2*Math.PI);
+  ctx.fillStyle=col;
+  ctx.fill();
+}
+
+/* 確率は即更新 */
+targetPrize.addEventListener("change", drawProb);
+nDraw.addEventListener("input", drawProb);
+totalInput.addEventListener("input", drawProb);
+</script>
+
+</body>
+</html>
