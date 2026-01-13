@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<!-- ===== OGP ===== -->
+<meta charset="UTF-8">
+<title>一番くじ期待値ツール</title>
+
+<!-- ===== OGP / Twitter Card ===== -->
 <meta property="og:title" content="一番くじ 期待値算出ツール">
 <meta property="og:description" content="一番くじの残り枚数から期待値を算出できる無料ツール">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ev-kitaichi-earth.github.io/ichiban-kuji/">
 <meta property="og:image" content="https://ev-kitaichi-earth.github.io/ichiban-kuji/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="一番くじ 期待値算出ツール">
 <meta name="twitter:description" content="一番くじの残り枚数から期待値を算出">
 <meta name="twitter:image" content="https://ev-kitaichi-earth.github.io/ichiban-kuji/ogp.png">
-<!-- ================= -->
+<meta name="twitter:domain" content="ev-kitaichi-earth.github.io">
+<!-- ============================== -->
 
-<meta charset="UTF-8">
-<title>一番くじ期待値ツール</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1:ital,wght@0,900&display=swap" rel="stylesheet">
@@ -415,7 +419,6 @@ function runUntilTarget(){
     out.join("<br>")+`<br><br><span class="hit">🎯 ${target}賞は ${count}回目で出現</span>`;
 }
 
-/* 使い方 */
 function openGuide(){
   document.getElementById("guideBg").style.display="block";
 }
