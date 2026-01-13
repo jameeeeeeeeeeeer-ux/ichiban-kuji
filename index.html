@@ -321,9 +321,9 @@ function calc(){
   const b=a+last;
 
   result.innerHTML=`
-  1回あたりの期待値（ラストワンなし）：
+  1枚あたりの期待値（ラストワン無）：
   <span class="${a>=0?'plus':'minus'}">${yen(Math.round(total?a/total:0))}</span><br>
-  1回あたりの期待値（ラストワン込み）：
+  1枚あたりの期待値（ラストワン有）：
   <span class="${b>=0?'plus':'minus'}">${yen(Math.round(total?b/total:0))}</span><br><br>
   💰 全ツ必要資金：<b>${yen(need)}</b><br>
   🎁 全ツ回収総額：<b>${yen(sum)}</b><br>
