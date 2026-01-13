@@ -22,17 +22,12 @@ h2{
   border-radius:16px;
   text-align:center;
   font-size:32px;
-  text-shadow:
-    -2px -2px 0 #000,
-     2px -2px 0 #000,
-    -2px  2px 0 #000,
-     2px  2px 0 #000;
+  text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
 }
 .desc{
   margin:14px 0 24px;
   text-align:center;
   font-weight:bold;
-  line-height:1.6;
 }
 h3{
   background:#000;
@@ -43,7 +38,6 @@ h3{
   font-size:16px;
   margin-top:28px;
 }
-
 input,select{
   width:90px;
   padding:6px;
@@ -51,17 +45,12 @@ input,select{
   border:2px solid #000;
   font-weight:bold;
 }
-
 .total-view{
   display:inline-block;
   min-width:40px;
-  padding:0 4px;
   font-size:20px;
   font-weight:900;
-  background:transparent;
-  border:none;
 }
-
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button{
   -webkit-appearance:none;
@@ -120,12 +109,35 @@ th,td{
 
 .plus{ color:#2f9e44;font-weight:bold; }
 .minus{ color:#e03131;font-weight:bold; }
+.hit{ color:#e03131; font-weight:bold; }
 
 footer{
   margin:40px 0 10px;
   font-size:13px;
   text-align:center;
   color:#555;
+}
+
+/* ===== 使い方ポップアップ ===== */
+.modal-bg{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  z-index:999;
+}
+.modal{
+  background:white;
+  max-width:520px;
+  margin:15vh auto;
+  padding:20px;
+  border-radius:16px;
+  border:4px solid #000;
+}
+.modal ul{
+  line-height:1.8;
+  font-weight:bold;
+  padding-left:20px;
 }
 </style>
 </head>
@@ -134,7 +146,8 @@ footer{
 
 <h2>🎁 一番くじ期待値ツール</h2>
 <div class="desc">
-このツールは一番くじの残り枚数から期待値を計算するシミュレーターです。
+このツールは一番くじの残り枚数から期待値を計算するシミュレーターです。<br>
+<button onclick="openGuide()">📘 ツールの使い方</button>
 </div>
 
 くじ価格
@@ -142,21 +155,7 @@ footer{
 残り枚数
 <span id="total" class="total-view">0</span> 枚
 
-<br><h3>🎯 店頭で引いた賞</h3>
-<div class="draw-buttons">
-  <button onclick="drawPrize('A')" >A賞</button>
-  <button onclick="drawPrize('B')" >B賞</button>
-  <button onclick="drawPrize('C')" >C賞</button>
-  <button onclick="drawPrize('D')" >D賞</button>
-  <button onclick="drawPrize('E')" >E賞</button>
-  <button onclick="drawPrize('F')" >F賞</button>
-  <button onclick="drawPrize('G')" >G賞</button>
-  <button onclick="drawPrize('H')" >H賞</button>
-  <button onclick="drawPrize('I')" >I賞</button>
-  <button onclick="drawPrize('J')" >J賞</button>
-</div>
-
-<h3>通常賞</h3>
+<br><h3>通常賞</h3>
 <table id="prizeTable">
 <tr><th>賞</th><th>残り</th><th>価格</th><th></th></tr>
 </table>
@@ -171,6 +170,9 @@ footer{
 
 <div id="result" class="card"></div>
 
+<br><h3>🎯 店頭で引いた賞</h3>
+<div id="drawButtons" class="draw-buttons"></div>
+
 <div class="card">
   <h3>📊 狙いの賞が出る確率</h3><br>
   <select id="targetPrize"></select>
@@ -180,9 +182,46 @@ footer{
   <div id="probText"></div>
 </div>
 
+<div class="card">
+  <h3>🎰 シミュレーション（練習用）</h3><br>
+
+  回数
+  <select id="simCount">
+    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+    <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+  </select> 回
+
+  狙いの賞
+  <select id="simTarget"></select>
+
+  <br><br>
+  <button onclick="runSimulation()">回数指定で実行</button>
+  <button onclick="runUntilTarget()">狙いの賞が出るまで引く</button>
+
+  <div id="simResult"></div>
+</div>
+
 <footer>
 本ツールは確率計算を目的としたもので、利益を保証するものではありません。
 </footer>
+
+<!-- ===== 使い方ポップアップ ===== -->
+<div id="guideBg" class="modal-bg" onclick="closeGuide()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>📘 ツールの使い方</h3>
+    <ul>
+      <li>① くじ価格を入力</li>
+      <li>②【賞を追加】から残りくじ数、価格を入力</li>
+      <li>③ ラストワンの有無、価格を入力</li>
+      <li>④【計算する】で結果を表示</li>
+      <li>⑤ 店頭で引いた賞のボタンを押すと<br>
+          その場で引いたくじに応じた結果が更新されます。</li>
+    </ul>
+    <div style="text-align:center">
+      <button onclick="closeGuide()">閉じる</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const priceInput=document.getElementById("price");
@@ -190,6 +229,8 @@ const totalView=document.getElementById("total");
 const prizeTable=document.getElementById("prizeTable");
 const result=document.getElementById("result");
 const targetPrize=document.getElementById("targetPrize");
+const simTarget=document.getElementById("simTarget");
+const drawButtons=document.getElementById("drawButtons");
 const nDraw=document.getElementById("nDraw");
 const pie=document.getElementById("pie");
 const probText=document.getElementById("probText");
@@ -211,10 +252,6 @@ function indexToLabel(i){
   return s;
 }
 
-function getTotal(){
-  return +totalView.textContent||0;
-}
-
 function syncTotal(){
   let sum=0;
   [...prizeTable.rows].forEach((r,i)=>{
@@ -227,12 +264,17 @@ function syncTotal(){
 
 function updateTarget(){
   targetPrize.innerHTML="";
+  simTarget.innerHTML='<option value="">狙いなし</option>';
+  drawButtons.innerHTML="";
   [...prizeTable.rows].forEach((r,i)=>{
     if(i===0)return;
-    const o=document.createElement("option");
-    o.value=r.dataset.prize;
-    o.textContent=r.dataset.prize+"賞";
-    targetPrize.appendChild(o);
+    const l=r.dataset.prize;
+    targetPrize.innerHTML+=`<option value="${l}">${l}賞</option>`;
+    simTarget.innerHTML+=`<option value="${l}">${l}賞</option>`;
+    const b=document.createElement("button");
+    b.textContent=l+"賞";
+    b.onclick=()=>drawPrize(l);
+    drawButtons.appendChild(b);
   });
 }
 
@@ -252,61 +294,55 @@ function addPrize(){
   updateTarget();
 }
 
-function drawPrize(label){
-  const row=[...prizeTable.rows].find(r=>r.dataset.prize===label);
-  if(!row)return;
-  const input=row.cells[1].children[0];
-  if(+input.value<=0)return;
-  input.value--;
-  syncTotal();
-  calc();
+function drawPrize(l){
+  const r=[...prizeTable.rows].find(x=>x.dataset.prize===l);
+  if(!r)return;
+  const i=r.cells[1].children[0];
+  if(+i.value>0){
+    i.value--;
+    syncTotal();
+    calc();
+  }
 }
 
 function calc(){
   const price=+priceInput.value;
-  const totalN=getTotal();
-  let normalSum=0;
+  const total=+totalView.textContent;
+  let sum=0;
 
   [...prizeTable.rows].forEach((r,i)=>{
     if(i===0)return;
-    normalSum+=(+r.cells[1].children[0].value)*(+r.cells[2].children[0].value);
+    sum+=+r.cells[1].children[0].value*(+r.cells[2].children[0].value);
   });
 
-  const need=totalN*price;
+  const need=total*price;
   const last=lastCheck.checked?+lastPrice.value:0;
-  const profitWithoutLast=normalSum-need;
-  const profitWithLast=profitWithoutLast+last;
+  const a=sum-need;
+  const b=a+last;
 
   result.innerHTML=`
-    1回期待値（ラストワンなし）：
-    <span class="${profitWithoutLast>=0?'plus':'minus'}">
-      ${yen(Math.round(totalN?profitWithoutLast/totalN:0))}
-    </span><br>
-    1回期待値（ラストワン込み）：
-    <span class="${profitWithLast>=0?'plus':'minus'}">
-      ${yen(Math.round(totalN?profitWithLast/totalN:0))}
-    </span><br><br>
-    💰 必要資金：<b>${yen(need)}</b><br>
-    🎁 回収総額：<b>${yen(normalSum)}</b><br>
-    🏁 ラストワン：<b>${last?yen(last):"なし"}</b><br>
-    📈 最終収支：
-    <span class="${profitWithLast>=0?'plus':'minus'}">
-      ${profitWithLast>=0?'+':''}${yen(profitWithLast)}
-    </span>
-  `;
+  1回あたりの期待値（ラストワンなし）：
+  <span class="${a>=0?'plus':'minus'}">${yen(Math.round(total?a/total:0))}</span><br>
+  1回あたりの期待値（ラストワン込み）：
+  <span class="${b>=0?'plus':'minus'}">${yen(Math.round(total?b/total:0))}</span><br><br>
+  💰 全ツ必要資金：<b>${yen(need)}</b><br>
+  🎁 全ツ回収総額：<b>${yen(sum)}</b><br>
+  🏁 ラストワン：<b>${last?yen(last):"なし"}</b><br>
+  📈 最終収支：
+  <span class="${b>=0?'plus':'minus'}">${b>=0?'+':''}${yen(b)}</span>`;
   drawProb();
 }
 
 function drawProb(){
-  const prize=targetPrize.value;
+  const p=targetPrize.value;
   const n=+nDraw.value;
-  const t=getTotal();
-  if(!prize||t<=0)return;
+  const t=+totalView.textContent;
+  if(!p||t<=0)return;
 
   let c=0;
   [...prizeTable.rows].forEach((r,i)=>{
     if(i===0)return;
-    if(r.dataset.prize===prize)c=+r.cells[1].children[0].value;
+    if(r.dataset.prize===p)c=+r.cells[1].children[0].value;
   });
 
   const hit=1-Math.pow((t-c)/t,n);
@@ -325,8 +361,54 @@ function drawPie(ctx,x,y,r,p,col,s){
   ctx.fill();
 }
 
-targetPrize.addEventListener("change",drawProb);
-nDraw.addEventListener("input",drawProb);
+function makeBox(){
+  let box=[];
+  [...prizeTable.rows].forEach((r,i)=>{
+    if(i===0)return;
+    const l=r.dataset.prize;
+    const c=+r.cells[1].children[0].value;
+    for(let j=0;j<c;j++)box.push(l);
+  });
+  return box;
+}
+
+function runSimulation(){
+  let box=makeBox();
+  const times=+document.getElementById("simCount").value;
+  const target=simTarget.value;
+  let out=[];
+  for(let i=0;i<times&&box.length;i++){
+    const idx=Math.floor(Math.random()*box.length);
+    const p=box.splice(idx,1)[0];
+    out.push(`<span class="${target&&p===target?'hit':''}">${i+1}回目：${p}賞</span>`);
+  }
+  document.getElementById("simResult").innerHTML=out.join("<br>");
+}
+
+function runUntilTarget(){
+  const target=simTarget.value;
+  if(!target)return;
+  let box=makeBox();
+  let count=0;
+  let out=[];
+  while(box.length){
+    count++;
+    const idx=Math.floor(Math.random()*box.length);
+    const p=box.splice(idx,1)[0];
+    out.push(`<span class="${p===target?'hit':''}">${count}回目：${p}賞</span>`);
+    if(p===target)break;
+  }
+  document.getElementById("simResult").innerHTML=
+    out.join("<br>")+`<br><br><span class="hit">🎯 ${target}賞は ${count}回目で出現</span>`;
+}
+
+/* 使い方 */
+function openGuide(){
+  document.getElementById("guideBg").style.display="block";
+}
+function closeGuide(){
+  document.getElementById("guideBg").style.display="none";
+}
 </script>
 
 </body>
